@@ -13,5 +13,4 @@ yorizori_server/**/migrations/
 !yorizori_server/**/migrations/__init__.py
 
 venv/
-.deepface
 media/
