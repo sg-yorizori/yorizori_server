@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'knox',
+    'recipe',
 ]
 
 REST_FRAMEWORK = {
