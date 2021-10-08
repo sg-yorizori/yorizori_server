@@ -6,3 +6,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'title', 'main_img', 'ingreds', 'ingred_amount', 'steps',
                   'step_img', 'views', 'writer')
+
+class IngredSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingred
+        fields = ('id', 'name')
