@@ -88,9 +88,12 @@ class ProfileUpdateAPI(generics.UpdateAPIView):
         try:
             profile_id = kwargs.get('profile_id')
             profile = Profile.objects.get(id=profile_id)
-            profile.nick_name = request.data['newNickName']
-            image = request.FILES['profileImage']
-            profile.profile_image = image
+            profile.nick_name = request.data['nick_name']
+            profile.disliked = request.data['disliked']
+
+            serializer_class = ProfileSerializer
+            #image = request.FILES['profileImage']
+            #profile.profile_image = image
             profile.save()
         except MultiValueDictKeyError:
             profile.save()
