@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, generics, status
 from knox.models import AuthToken
-from .serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer, ProfileSerializer
+from .serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer, ProfileSerializer, ProfileUpdateSerializer
 from .models import Profile
 from django.utils.datastructures import MultiValueDictKeyError
 
@@ -82,21 +82,28 @@ class ProfileCreateAPI(generics.CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
-
 class ProfileUpdateAPI(generics.UpdateAPIView):
+    lookup_field = 'user_id'
+    queryset = Profile.objects.all()
+    serializer_class = ProfileUpdateSerializer
+
+
+'''
+class ProfileUpdateAPI(generics.UpdateAPIView):
+    serializer_class = Profile2Serializer
+
     def post(self, request, **kwargs):
         try:
             profile_id = kwargs.get('profile_id')
             profile = Profile.objects.get(id=profile_id)
             profile.nick_name = request.data['nick_name']
             profile.disliked = request.data['disliked']
-
-            serializer_class = ProfileSerializer
             #image = request.FILES['profileImage']
             #profile.profile_image = image
             profile.save()
         except MultiValueDictKeyError:
-            profile.save()
-
+            #profile.save()
+            profile = None
         return Response(status=200)
 
+'''

@@ -9,6 +9,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # Profile의 모든 field를 serializer함.
 
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ("nick_name", "disliked")
+
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
