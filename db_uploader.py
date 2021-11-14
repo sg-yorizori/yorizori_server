@@ -9,7 +9,8 @@ django.setup()
 
 import csv
 import ast
-from recipe.models import Recipe, Ingred
+from users.models import User
+from recipe.models import Recipe, Ingredients, Steps
 from tqdm import tqdm
 
 def write_to_db(file):
@@ -20,22 +21,38 @@ def write_to_db(file):
             try:
                 recipe, _ = Recipe.objects.get_or_create(
                     title=row[0],
-                    main_img=row[1],
-                    ingred_amount=row[3],
-                    steps=row[4],
-                    step_img=row[5],
-                    views=row[6],
-                    writer=row[7]
+                    thumbnail=row[1],
+                    # writer : row[2]
+                    # ingredients : row[3] >> unit(ingrd_id, unit)
+                    # steps : row[4]
+                    views=row[5],
                 )
-                ingreds_str = row[2]
-                ingreds = ast.literal_eval(ingreds_str)
-                ingreds = map(str.lower, ingreds)
+                # ------------writer------------
+                recipe.writer = User.objects.get(pk=0)
+                # ------------ingredients------------
+                ingrds_str = row[3]
+                ingrds = ast.literal_eval(ingrds_str)     # str convert to python format
+                '''
+                ingreds = map(str.lower, ingreds)           # to lower case
                 ingreds = list(set(ingreds))
                 for ingred_name in ingreds:
-                    ingred, _ = Ingred.objects.get_or_create(name=ingred_name)
-                    recipe.ingreds.add(ingred)
+                    ingred, _ = Ingredients.objects.get_or_create(name=ingred_name)#TODO manytomany field
+                    recipe.ingredients.add(ingred)
+                '''
+                for each_ingrd, each_unit in ingrds:
+                    ingrd, _ = Ingredients.get_or_create(ingredient=each_ingrd)
+                    unit, _ = Unit.objects.get_or_create(ingrd_id=ingrd.pk, recipe_id=recipe.id, unit=each_unit)
+                    recipe.units.add(unit)
+
+                # ------------steps------------
+                steps_str = row[4]
+                steps = ast.literal_eval(steps_str)  # str convert to python format
+                for step in steps:
+                    step, _ = Steps.objects.create(num=step[0], contents=step[1], img=step[2])
+                    recipe.steps.add(step)
+
             except Exception as e:
-                print(e)
+                    print(e)
 
 def validate_file(f):
     if not os.path.exists(f):
