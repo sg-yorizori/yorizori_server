@@ -4,7 +4,7 @@ from PIL import Image
 from download_pt import download_file_from_google_drive
 
 class Dectect_Ingrd:
-    def __init__(self, pt='last'):
+    def __init__(self, pt='last'): #defalut : last.pt
         dir_path = os.path.dirname(os.path.realpath(__file__))
         last_pt_path = os.path.join(dir_path, 'ingrd_yolov5m_last.pt')
         best_pt_path = os.path.join(dir_path, 'ingrd_yolov5m_best.pt')
@@ -23,16 +23,17 @@ class Dectect_Ingrd:
 
         self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=pt)
 
-    def detect(self, img_path):
+    def detect(self, img_path): #return result, json_result
         img = Image.open(img_path)
-        results = self.model(img)
+        result = self.model(img)
         # index / xmin / ymin / xmax / ymax / confidence / class / name
-        return results
+        return result, result.pandas().xyxy[0].to_json(orient="records")
 
 if __name__ == "__main__":
     detection = Dectect_Ingrd() #Dectect_Ingrd('best')
-    results = detection.detect("E:/test.jpg") #for test
+    result, json_result = detection.detect("E:/test.jpg") #for test
 
-    # results.print()
-    # results.save()
-    print(results.pandas().xyxy[0].to_json(orient="records")) #to json format
+    # result.print()
+    # result.save()
+    print(json_result) #to json format
+    print(json_result[0].name)
