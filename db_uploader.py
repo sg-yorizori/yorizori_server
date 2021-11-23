@@ -10,8 +10,9 @@ django.setup()
 import csv
 import ast
 from users.models import User
-from recipe.models import Recipe, Ingredients, Steps
+from recipe.models import *
 from tqdm import tqdm
+from datetime import datetime
 
 def write_to_db(file):
     with open(file, encoding='utf-8-sig') as csvfile:
@@ -26,6 +27,7 @@ def write_to_db(file):
                     # ingredients : row[3] >> unit(ingrd_id, unit)
                     # steps : row[4]
                     views=row[5],
+                    created_dater=datetime.strptime(row[6], "%Y-%m-%d")
                 )
                 # ------------writer------------
                 recipe.writer = User.objects.get(pk=0)
@@ -48,7 +50,7 @@ def write_to_db(file):
                 steps_str = row[4]
                 steps = ast.literal_eval(steps_str)  # str convert to python format
                 for step in steps:
-                    step, _ = Steps.objects.create(num=step[0], contents=step[1], img=step[2])
+                    step, _ = Steps.objects.create(num=int(step[0]), contents=step[1], img=step[2])
                     recipe.steps.add(step)
 
             except Exception as e:
