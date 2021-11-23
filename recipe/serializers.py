@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Recipe
+from .models import Recipe, Ingred
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -7,3 +7,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
         # Profile의 모든 field를 serializer함.
+
+class IngredSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingred
+        fields = '__all__'
