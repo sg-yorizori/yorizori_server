@@ -2,9 +2,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
 from .models import Recipe, Ingred
-from .serializers import RecipeSerializer, IngredSerializer
+from .serializers import RecipeSerializer, RecipeCRSerializer, IngredSerializer
 
-from rest_framework import status
+from rest_framework import status, generics
 
 
 class RecipeAPIView(APIView):
@@ -21,6 +21,14 @@ class RecipeAPIView(APIView):
             serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+"""
+class RecipeUpdateAPI(generics.UpdateAPIView):
+    lookup_field = 'id'
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeCRSerializer
+"""
+
 
 
 class RecipeDetails(APIView):

@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
+
 
 class Ingred(models.Model):
     name = models.CharField(max_length=50)
@@ -11,9 +13,11 @@ class Recipe(models.Model):
     writer = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
     title = models.CharField(max_length=100)
 
+    nowDate = (datetime.datetime.now()).strftime('%Y-%m-%d')
+    created_date = models.CharField(max_length=100, default=nowDate)
+
     #views는 일단 나중에 할까용
-    #ingredients = models.CharField(max_length=200)
-    #content = models.TextField(blank=True, null=True)
+
 
     def __str__(self):
         return self.title
