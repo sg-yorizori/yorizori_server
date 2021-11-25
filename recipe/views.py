@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
-from .models import Recipe, Ingred
+from .models import Recipe, Ingredients
 from .serializers import RecipeSerializer, RecipeCRSerializer, IngredSerializer
 
 from rest_framework import status, generics

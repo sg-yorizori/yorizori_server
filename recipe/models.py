@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 import datetime
 
 
-class Ingred(models.Model):
+class Ingredients(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
@@ -15,16 +15,17 @@ class Recipe(models.Model):
 
     nowDate = (datetime.datetime.now()).strftime('%Y-%m-%d')
     created_date = models.CharField(max_length=100, default=nowDate)
+    views = models.IntegerField(default=0)
 
-    #views는 일단 나중에 할까용
-
+    #thumb = models.ImageField(upload_to='thumbs', blank=True)
+    thumb = models.URLField(blank=True)
 
     def __str__(self):
         return self.title
 
 class Unit(models.Model):
     recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE,null=True, blank=True)
-    ingrd_id = models.ForeignKey(Ingred, on_delete=models.CASCADE,null=True, blank=True)
+    ingrd_id = models.ForeignKey(Ingredients, on_delete=models.CASCADE,null=True, blank=True)
     unit = models.CharField(max_length=100)
 
     def __str__(self):
@@ -34,6 +35,7 @@ class Steps(models.Model):
     recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     num = models.IntegerField(default=0)
     contents = models.CharField(max_length=1000)
-    #img
+    img = models.URLField(blank=True)
+
     def __str__(self):
         return self.contents
