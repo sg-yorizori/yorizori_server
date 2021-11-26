@@ -1,17 +1,16 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
-from .models import Recipe, Ingredients
-from .serializers import RecipeSerializer, RecipeCRSerializer, IngredSerializer
+from .models import Recipe, Steps, Unit
+from .serializers import RecipeSerializer, StepSerializer, UnitSerializer
 
 from rest_framework import status, generics
 
 
 class RecipeAPIView(APIView):
-
-    def get(self, request):
-        recipes = Recipe.objects.all()
-        serializers = RecipeSerializer(recipes, many=True)
+    def get(self, request, id):
+        recipe_List = Recipe.objects.filter(writer = id)
+        serializers = RecipeSerializer(recipe_List, many=True)
         return Response(serializers.data)
 
     def post(self, request):
@@ -22,17 +21,8 @@ class RecipeAPIView(APIView):
             return Response(serializers.data, status=status.HTTP_201_CREATED)
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
 
-"""
-class RecipeUpdateAPI(generics.UpdateAPIView):
-    lookup_field = 'id'
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeCRSerializer
-"""
-
-
 
 class RecipeDetails(APIView):
-
     def get_object(self, id):
         try:
             return Recipe.objects.get(id=id)
@@ -59,6 +49,51 @@ class RecipeDetails(APIView):
         recipe.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
 
+
+
+class StepsCreateAPI(APIView):
+    def post(self, request):
+        serializers = StepSerializer(data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+class StepsAPI(APIView):
+    def get_object(self, id):
+        try:
+            return Steps.objects.get(id=id)
+
+        except Steps.DoesNotExist:
+            return Response(status = status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, id):
+        Step = self.get_object(id)
+        serializers = StepSerializer(Step)
+        return Response(serializers.data)
+
+    def put(self, request, id):
+        Step = self.get_object(id)
+        serializers = StepSerializer(Step, data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        Step = self.get_object(id)
+        Step.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)
+
+class StepsAllViewAPI(APIView):
+    def get(self, request, id):
+        Step_List = Steps.objects.filter(recipe_id = id)
+        serializers = StepSerializer(Step_List, many=True)
+        return Response(serializers.data)
+
+
 # class RecipeView(APIView):
 #     def get(self, request, **kwargs):
 #         if kwargs.get('recipe_id') is None:
@@ -71,6 +106,7 @@ class RecipeDetails(APIView):
 #                 get_object_or_404(Recipe, id=recipe_id))
 #             return Response(recipe_serializer.data, status=200)
 
+"""
 class IngredView(APIView):
     def get(self, request, **kwargs):
         if kwargs.get('ingred_id') is None:
@@ -82,3 +118,4 @@ class IngredView(APIView):
             ingred_serializer = IngredSerializer(
                 get_object_or_404(Ingred, id=ingred_id))
             return Response(ingred_serializer.data, status=200)
+"""

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredients
+from .models import Recipe, Steps, Unit
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -8,13 +8,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # Profile의 모든 field를 serializer함.
 
-class RecipeCRSerializer(serializers.ModelSerializer):
+class StepSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Recipe
-        fields = ("writer", "title", "created_date")
-        # Profile의 모든 field를 serializer함.
+        model = Steps
+        fields = '__all__'
 
-class IngredSerializer(serializers.ModelSerializer):
+class UnitSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Ingredients
+        model = Unit
         fields = '__all__'

@@ -12,7 +12,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ("nick_name", "disliked", "bookmark")
+        fields = ("nick_name","profile_img", "disliked", "bookmark", "vegan")
 
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:

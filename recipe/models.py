@@ -10,7 +10,7 @@ class Ingredients(models.Model):
         return self.name
 
 class Recipe(models.Model):
-    writer = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+    writer = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, default=0)
     title = models.CharField(max_length=100)
 
     nowDate = (datetime.datetime.now()).strftime('%Y-%m-%d')
@@ -32,7 +32,7 @@ class Unit(models.Model):
         return self.unit
 
 class Steps(models.Model):
-    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE, blank=True)
     num = models.IntegerField(default=0)
     contents = models.CharField(max_length=1000)
     img = models.URLField(blank=True)
