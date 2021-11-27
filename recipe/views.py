@@ -94,6 +94,50 @@ class StepsAllViewAPI(APIView):
         return Response(serializers.data)
 
 
+class UnitCreateAPI(APIView):
+    def post(self, request):
+        serializers = UnitSerializer(data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+class UnitAPI(APIView):
+    def get_object(self, id):
+        try:
+            return Unit.objects.get(id=id)
+
+        except Unit.DoesNotExist:
+            return Response(status = status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, id):
+        Unit = self.get_object(id)
+        serializers = UnitSerializer(Unit)
+        return Response(serializers.data)
+
+    def put(self, request, id):
+        Unit = self.get_object(id)
+        serializers = UnitSerializer(Unit, data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        Unit = self.get_object(id)
+        Unit.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)
+
+class UnitAllViewAPI(APIView):
+    def get(self, request, id):
+        Unit_List = Unit.objects.filter(recipe_id = id)
+        serializers = UnitSerializer(Unit_List, many=True)
+        return Response(serializers.data)
+
+
+
 # class RecipeView(APIView):
 #     def get(self, request, **kwargs):
 #         if kwargs.get('recipe_id') is None:
