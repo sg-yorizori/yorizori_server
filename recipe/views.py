@@ -7,20 +7,68 @@ from .serializers import RecipeSerializer, StepSerializer, UnitSerializer
 from rest_framework import status, generics
 
 
-class RecipeAPIView(APIView):
+class RecipeAllViewAPI(APIView): #특정 유저가 작성한 레시피 전체
+    def get(self, request, id):
+        recipe_List = Recipe.objects.filter(writer = id)
+        serializers = RecipeSerializer(recipe_List, many=True)
+        return Response(serializers.data)
+
+class RecipeListViewAPI(APIView):
     def get(self, request, id):
         recipe_List = Recipe.objects.filter(writer = id)
         serializers = RecipeSerializer(recipe_List, many=True)
         return Response(serializers.data)
 
     def post(self, request):
-        serializers = RecipeSerializer(data=request.data)
+        flag = request.data["flag"]
+        if(flag==1):
+            recipe_List = Recipe.objects.filter(id__in = request.data["recipe_list"])
 
+        elif (flag == 2):
+            # disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
+
+            # 비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
+            # ex_ingrds
+            ex_units = Unit.objects.filter(ingrd_id__in=request.data["disliked"])
+
+            ex_recipes = []
+            for unit in ex_units:
+                ex_recipes.append(unit.recipe_id)
+
+            recipe_id_List = []
+            for recipe in ex_recipes:
+                recipe_id_List.append(recipe.id)
+
+            recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-views")
+
+        elif(flag==3):
+            #disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
+
+            #비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
+            #ex_ingrds
+            ex_units = Unit.objects.filter(ingrd_id__in = request.data["disliked"])
+
+            ex_recipes = []
+            for unit in ex_units:
+                ex_recipes.append(unit.recipe_id)
+
+            recipe_id_List = []
+            for recipe in ex_recipes:
+                recipe_id_List.append(recipe.id)
+
+            recipe_List = (Recipe.objects.exclude(id__in = recipe_id_List)).order_by("-created_date")
+
+
+        serializers = RecipeSerializer(recipe_List, many=True)
+        return Response(serializers.data)
+
+class RecipeCreateAPI(APIView):
+    def post(self, request):
+        serializers = RecipeSerializer(data=request.data)
         if serializers.is_valid():
             serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
-
 
 class RecipeDetails(APIView):
     def get_object(self, id):
