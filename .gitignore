@@ -14,3 +14,7 @@ yorizori_server/**/migrations/
 
 venv/
 media/
+
+*.pt
+runs
+result
