@@ -74,7 +74,7 @@ class UserAPI(generics.RetrieveAPIView):
 class ProfileAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         profile_list = ProfileSerializer(
-            Profile.objects.filter(user_id=request.data["user_id"]), many=True)
+            Profile.objects.get(user_id=request.data["user_id"]))
         return Response(profile_list.data, status=200)
 
 
