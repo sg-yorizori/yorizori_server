@@ -49,7 +49,7 @@ class Dectect_Ingrd:
 
 if __name__ == "__main__":
     detection = Dectect_Ingrd() #Dectect_Ingrd('best')
-    np_result, img_result = detection.detect("E:/test.jpg") #for test
+    np_result, img_result = detection.detect("C:/Users/Sky/Desktop/test.jpg") #for test
 
     # xmin / ymin / xmax / ymax / confidence / class / name
     print(np_result)
