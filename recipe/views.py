@@ -21,10 +21,10 @@ class RecipeListViewAPI(APIView):
 
     def post(self, request):
         flag = request.data["flag"]
-        if(flag==1):
+        if (flag==1):
             recipe_List = Recipe.objects.filter(id__in = request.data["recipe_list"])
 
-        elif (flag == 2):
+        elif (flag <= 2):
             # disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
 
             # 비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
@@ -39,24 +39,17 @@ class RecipeListViewAPI(APIView):
             for recipe in ex_recipes:
                 recipe_id_List.append(recipe.id)
 
-            recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-views")
+            if flag==2:
+                recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-views")
+            elif flag==3:
+                recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-created_date")
+            else: #검색
 
-        elif(flag==3):
-            #disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
+                search_List = (Recipe.objects.exclude(id__in=recipe_id_List)).filter(id__in=recipe)
 
-            #비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
-            #ex_ingrds
-            ex_units = Unit.objects.filter(ingrd_id__in = request.data["disliked"])
 
-            ex_recipes = []
-            for unit in ex_units:
-                ex_recipes.append(unit.recipe_id)
 
-            recipe_id_List = []
-            for recipe in ex_recipes:
-                recipe_id_List.append(recipe.id)
 
-            recipe_List = (Recipe.objects.exclude(id__in = recipe_id_List)).order_by("-created_date")
 
 
         serializers = RecipeSerializer(recipe_List, many=True)
@@ -184,6 +177,7 @@ class UnitAllViewAPI(APIView):
         serializers = UnitSerializer(Unit_List, many=True)
         return Response(serializers.data)
 
+#def ingrd_charTOid(list):
 
 
 # class RecipeView(APIView):
