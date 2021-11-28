@@ -1,10 +1,11 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
-from .models import Recipe, Steps, Unit
+from .models import Recipe, Steps, Unit, Ingredients
 from .serializers import RecipeSerializer, StepSerializer, UnitSerializer
 
 from rest_framework import status, generics
+from django.db.models import Case, When, Q
 
 
 class RecipeAllViewAPI(APIView): #특정 유저가 작성한 레시피 전체
@@ -24,7 +25,7 @@ class RecipeListViewAPI(APIView):
         if (flag==1):
             recipe_List = Recipe.objects.filter(id__in = request.data["recipe_list"])
 
-        elif (flag <= 2):
+        elif (flag >= 2):
             # disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
 
             # 비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
@@ -35,20 +36,64 @@ class RecipeListViewAPI(APIView):
             for unit in ex_units:
                 ex_recipes.append(unit.recipe_id)
 
-            recipe_id_List = []
+            ex_recipe_id_List = []
             for recipe in ex_recipes:
-                recipe_id_List.append(recipe.id)
+                ex_recipe_id_List.append(recipe.id)
 
             if flag==2:
-                recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-views")
+                recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).order_by("-views")
             elif flag==3:
-                recipe_List = (Recipe.objects.exclude(id__in=recipe_id_List)).order_by("-created_date")
+                recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).order_by("-created_date")
             else: #검색
+                #재료 문자열 리스트를 재료 인스턴스 리스트형으로
+                ingrd = (request.data["search"]).split()
+                ingrd_instance_List = Ingredients.objects.filter(name__in=ingrd)
 
-                search_List = (Recipe.objects.exclude(id__in=recipe_id_List)).filter(id__in=recipe)
+                ingrd_List=[]
+                for instance in ingrd_instance_List:
+                    ingrd_List.append(instance.id)
+                    #print(instance.name, instance.id)
 
+                #검색할 재료를 유닛에서 검색. (12)당근 2개, (13)당근 1개, (12)양파1개
+                in_units = Unit.objects.filter(ingrd_id__in=ingrd_List)
 
+                in_recipes = []
+                for unit in in_units:
+                    in_recipes.append(unit.recipe_id)
+                #일치하는 재료 개수만큼 레시피 추가됨
 
+                #print("list ", len(in_recipes))
+                #print("set ", len(set(in_recipes)))
+                count = {}
+                for i in in_recipes:
+                    try:
+                        count[i] += 1
+                    except:
+                        count[i] = 1
+                #print(sorted(count.items(), key=lambda item: item[1], reverse=True))
+                sorted_count = sorted(count.items(), key=lambda item: item[1], reverse=True)
+                #print(sorted_count)
+                #겹치는게 많은걸 먼저 솔팅해서 id int list 추출하기
+
+                search_recipe_id_List = []
+                for recipe in sorted_count:
+                    search_recipe_id_List.append(recipe[0].id)
+
+                #print(len(search_recipe_id_List))
+                #print(len(ex_recipe_id_List))
+                #print(len(search_recipe_id_List))
+                output_id_List = [x for x in search_recipe_id_List if x not in ex_recipe_id_List]
+                #print(output_id_List)
+
+                """
+                ordering = 'FIELD(`id`, %s)' % ','.join(str(id) for id in output_id_List)
+                print(ordering)
+                recipe_List = Recipe.objects.filter(id__in=[output_id_List]).extra(
+                    select={'ordering': ordering}, order_by=('ordering',))
+                """
+                preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(output_id_List)])
+                recipe_List = Recipe.objects.filter(pk__in=output_id_List).order_by(preserved)
+                #recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).filter(id__in=search_recipe_id_List)
 
 
 
@@ -177,8 +222,9 @@ class UnitAllViewAPI(APIView):
         serializers = UnitSerializer(Unit_List, many=True)
         return Response(serializers.data)
 
-#def ingrd_charTOid(list):
-
+def ingrd_charTOid(list):
+    ingrd = list.split()
+    Ingredients.objects.filter(name__in = ingrd)
 
 # class RecipeView(APIView):
 #     def get(self, request, **kwargs):
