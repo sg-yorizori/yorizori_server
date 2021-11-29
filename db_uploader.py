@@ -30,33 +30,20 @@ def write_to_db(file):
                     views=row[5],
                     created_date=datetime.strptime(row[6], "%Y-%m-%d")
                 )
-                print()
-                # ------------writer------------
-                #recipe.writer = User.objects.get(pk=2)
+
                 # ------------ingredients------------
                 ingrds_str = row[3]
                 ingrds = ast.literal_eval(ingrds_str)     # str convert to python format
-                '''
-                ingreds = map(str.lower, ingreds)           # to lower case
-                ingreds = list(set(ingreds))
-                for ingred_name in ingreds:
-                    ingred, _ = Ingredients.objects.get_or_create(name=ingred_name)#TODO manytomany field
-                    recipe.ingredients.add(ingred)
-                '''
-
-                #print("recipe end")
 
                 for each_ingrd, each_unit in ingrds:
                     ingrd, _ = Ingredients.objects.get_or_create(name=each_ingrd)
                     Unit.objects.get_or_create(ingrd_id=ingrd, recipe_id=recipe, unit=each_unit)
-                    #recipe.units.add(unit)
 
                 # ------------steps------------
                 steps_str = row[4]
                 steps = ast.literal_eval(steps_str)  # str convert to python format
                 for step in steps:
                     Steps.objects.create(recipe_id=recipe, num=int(step[0]), contents=step[1], img=step[2])
-                    #recipe.steps.add(step)
 
             except Exception as e:
                     print(e)
