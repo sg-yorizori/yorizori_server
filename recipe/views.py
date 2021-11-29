@@ -14,6 +14,24 @@ class RecipeAllViewAPI(APIView): #특정 유저가 작성한 레시피 전체
         serializers = RecipeSerializer(recipe_List, many=True)
         return Response(serializers.data)
 
+def ex_ingrds(v, disliked):
+    vegan = []
+    if v>=1: vegan += [357, 356, 335, 329, 325, 306, 285, 279, 271, 268, 264, 243, \
+                       237, 229, 228, 185, 152, 150, 137, 112, 102, 83, 80, 76, 69,\
+                       65, 56, 21]
+    if v>=2: vegan += [362, 336, 265, 261, 255, 226, 168, 89, 71, 58, 39]
+    if v>=3: vegan += [350, 332, 324, 320, 318, 311, 298, 296, 281, 278, 277, 275,\
+                       274, 270, 267, 253, 244, 240, 232, 224, 206, 198, 194, 187,\
+                       178, 174, 161, 156, 149, 148, 145, 139, 134, 128, 86, 82,  \
+                       44, 10]
+    if v==4: vegan += [121, 52]
+    elif v==5: vegan += [304, 301, 259, 251, 217, 208, 119, 116, 115, 103, 99, 97, \
+                       95, 93, 64, 63, 55, 46, 31, 30, 6]
+    if v==6: vegan += [121, 52, 304, 301, 259, 251, 217, 208, 119, 116, 115, 103,\
+                       99, 97, 95, 93, 64, 63, 55, 46, 31, 30, 6]
+
+    return list(set(vegan + disliked))
+
 class RecipeListViewAPI(APIView):
     def get(self, request, id):
         recipe_List = Recipe.objects.filter(writer = id)
@@ -26,11 +44,7 @@ class RecipeListViewAPI(APIView):
             recipe_List = Recipe.objects.filter(id__in = request.data["recipe_list"])
 
         elif (flag >= 2):
-            # disliked가 포함된 레시피 리스트 얻고 그걸 다시 제외!
-
-            # 비건 레벨에 맞는 제외 ingrd 포함해서 아래 코드 수정하기(합쳐주기)
-            # ex_ingrds
-            ex_units = Unit.objects.filter(ingrd_id__in=request.data["disliked"])
+            ex_units = Unit.objects.filter(ingrd_id__in=ex_ingrds(request.data["vegan"], request.data["disliked"]))
 
             ex_recipes = []
             for unit in ex_units:
@@ -141,12 +155,20 @@ class RecipeDetails(APIView):
 
 class StepsCreateAPI(APIView):
     def post(self, request):
-        serializers = StepSerializer(data=request.data)
+        flag = 0
+        for step in request.data:
+            serializers = StepSerializer(data=step)
 
-        if serializers.is_valid():
-            serializers.save()
-            return Response(serializers.data, status=status.HTTP_201_CREATED)
-        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+            if serializers.is_valid():
+                serializers.save()
+            else:
+                flag=1
+        if flag==1 : Response(status = status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_201_CREATED)
+
+
+
+
 
 class StepsAPI(APIView):
     def get_object(self, id):
@@ -184,12 +206,20 @@ class StepsAllViewAPI(APIView):
 
 class UnitCreateAPI(APIView):
     def post(self, request):
-        serializers = UnitSerializer(data=request.data)
+        flag = 0
+        for unit in request.data:
+            ingrd = Ingredients.objects.get(name = unit["ingrd_id"])
+            unit["ingrd_id"] = ingrd.id
+            serializers = UnitSerializer(data=unit)
 
-        if serializers.is_valid():
-            serializers.save()
-            return Response(serializers.data, status=status.HTTP_201_CREATED)
-        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+            if serializers.is_valid():
+                serializers.save()
+            else:
+                flag=1
+        if flag==1 : return Response(status = status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_201_CREATED)
+
+
 
 class UnitAPI(APIView):
     def get_object(self, id):
@@ -220,9 +250,17 @@ class UnitAPI(APIView):
 
 class UnitAllViewAPI(APIView):
     def get(self, request, id):
-        Unit_List = Unit.objects.filter(recipe_id = id)
-        serializers = UnitSerializer(Unit_List, many=True)
-        return Response(serializers.data)
+        Unit_before_List = Unit.objects.filter(recipe_id = id)
+        Unit_List = []
+        for raw in Unit_before_List:
+            unit = UnitSerializer(raw).data
+            ingrd = Ingredients.objects.get(id = unit["ingrd_id"])
+            del unit["id"]
+            del unit["ingrd_id"]
+            del unit["recipe_id"]
+            unit["ingrd_name"] = ingrd.name
+            Unit_List.append(unit)
+        return Response(Unit_List)
 
 
 class IngrdCreateAPI(APIView):
