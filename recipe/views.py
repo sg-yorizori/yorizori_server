@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
 from .models import Recipe, Steps, Unit, Ingredients
-from .serializers import RecipeSerializer, StepSerializer, UnitSerializer
+from .serializers import RecipeSerializer, StepSerializer, UnitSerializer, IngredientsSerializer
 
 from rest_framework import status, generics
 from django.db.models import Case, When, Q
@@ -42,8 +42,10 @@ class RecipeListViewAPI(APIView):
 
             if flag==2:
                 recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).order_by("-views")
+                recipe_List = recipe_List[:10]
             elif flag==3:
                 recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).order_by("-created_date")
+                recipe_List = recipe_List[:10]
             else: #검색
                 #재료 문자열 리스트를 재료 인스턴스 리스트형으로
                 ingrd = (request.data["search"]).split()
@@ -175,7 +177,7 @@ class StepsAPI(APIView):
 
 class StepsAllViewAPI(APIView):
     def get(self, request, id):
-        Step_List = Steps.objects.filter(recipe_id = id)
+        Step_List = Steps.objects.filter(recipe_id = id).order_by("num")
         serializers = StepSerializer(Step_List, many=True)
         return Response(serializers.data)
 
@@ -222,9 +224,62 @@ class UnitAllViewAPI(APIView):
         serializers = UnitSerializer(Unit_List, many=True)
         return Response(serializers.data)
 
-def ingrd_charTOid(list):
-    ingrd = list.split()
-    Ingredients.objects.filter(name__in = ingrd)
+
+class IngrdCreateAPI(APIView):
+    def post(self, request):
+        serializers = IngredientsSerializer(data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+class IngrdAPI(APIView):
+    def get_object(self, id):
+        try:
+            return Ingredients.objects.get(id=id)
+        except Ingredients.DoesNotExist:
+            return Response(status = status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, id):
+        Ingredients = self.get_object(id)
+        serializers = IngredientsSerializer(Ingredients)
+        return Response(serializers.data)
+
+    def put(self, request, id):
+        Ingredients = self.get_object(id)
+        serializers = IngredientsSerializer(Ingredients, data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        Ingredients = self.get_object(id)
+        Ingredients.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)
+
+#전체 리스트주는 get, ["당근", "사과", "오이"] 아니면 [1, 2, 3]
+class IngrdAllViewAPI(APIView):
+    def get(self, request):
+        Ingredient_List = Ingredients.objects.all().order_by("name")
+        serializers = IngredientsSerializer(Ingredient_List, many=True)
+        return Response(serializers.data)
+
+    def post(self, request):
+        flag = request.data["flag"]
+        if(flag==1): #["당근", "사과", "오이"]
+            Ingredient_List = Ingredients.objects.filter(name__in = request.data["ingrd_List"])
+            serializers = IngredientsSerializer(Ingredient_List, many=True)
+        elif (flag == 2):  # [1, 2, 3]
+            Ingredient_List = Ingredients.objects.filter(id__in=request.data["ingrd_List"])
+            serializers = IngredientsSerializer(Ingredient_List, many=True)
+
+        return Response(serializers.data)
+
+
+
 
 # class RecipeView(APIView):
 #     def get(self, request, **kwargs):

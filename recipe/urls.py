@@ -16,6 +16,10 @@ urlpatterns = [
 
     path('unit/add/', UnitCreateAPI.as_view()),
     path('unit/<int:id>/', UnitAPI.as_view()),
-    path('unit/all/<int:id>/', UnitAllViewAPI.as_view())
+    path('unit/all/<int:id>/', UnitAllViewAPI.as_view()),
+
+    path('ingrd/add/', IngrdCreateAPI.as_view()),
+    path('ingrd/<int:id>/', IngrdAPI.as_view()),
+    path('ingrd/all/', IngrdAllViewAPI.as_view()),
 
 ]
