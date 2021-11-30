@@ -18,7 +18,7 @@ class Recipe(models.Model):
     views = models.IntegerField(default=0)
 
     #thumb = models.ImageField(upload_to='thumbs', blank=True)
-    thumb = models.URLField(blank=True)
+    thumb = models.TextField(blank=True)
 
     def __str__(self):
         return self.title
@@ -35,7 +35,7 @@ class Steps(models.Model):
     recipe_id = models.ForeignKey(Recipe, on_delete=models.CASCADE, blank=True)
     num = models.IntegerField(default=0)
     contents = models.CharField(max_length=1000)
-    img = models.URLField(blank=True)
+    img = models.TextField(blank=True)
 
     def __str__(self):
         return self.contents
