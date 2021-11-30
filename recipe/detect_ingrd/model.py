@@ -2,10 +2,21 @@ import os
 import os.path as osp
 import torch
 from PIL import Image
-from download_pt import download_file_from_google_drive
+from .download_pt import download_file_from_google_drive
 
 
 class Dectect_Ingrd:
+    CLASSES = ['가지', '고구마', '고추', '단호박', '달걀',
+               '당근', '대파', '두부', '레몬', '마늘',
+               '무우', '배추', '버섯', '브로콜리', '빵', '사과', '아보카도', '애호박', '양배추', '양파',
+               '오이', '콩나물', '토마토', '파프리카', '피망']
+
+    CLASSES_ENG = ['gazi', 'gogooma', 'gochu', 'danhobak', 'egg',
+                   'dangkeun', 'daepa', 'dubu', 'lemon', 'manul',
+                   'moo', 'baechu', 'mushroom', 'brocolli', 'bread',
+                   'apple', 'avocado', 'aehobak', 'yangbaechu', 'onion',
+                   'oi', 'kongnamul', 'tomato', 'paprika', 'pimang']
+
     def __init__(self, pt='last'):  # defalut : last.pt
         dir_path = os.path.dirname(os.path.realpath(__file__))
         last_pt_path = os.path.join(dir_path, 'ingrd_yolov5m_last.pt')
@@ -23,7 +34,8 @@ class Dectect_Ingrd:
             download_file_from_google_drive(pt_file_id, pt)
             print('download complete!')
 
-        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=pt)
+        self.model = torch.hub.load(
+            'ultralytics/yolov5', 'custom', path=pt, force_reload=True)
 
     def detect(self, input_img_path, dest_img_path='result'):  # return np_result, img_result_path
         img = Image.open(input_img_path)
@@ -41,6 +53,8 @@ class Dectect_Ingrd:
         return self.np_result, dest_img
 
     def get_result_ingrd_list(self):
+        self.ingrd_list = [
+            self.CLASSES[self.CLASSES_ENG.index(i)] for i in self.ingrd_list]
         return self.ingrd_list
 
     def get_xyxy_ingrd(self, ingrd):
