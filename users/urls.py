@@ -14,6 +14,6 @@ urlpatterns = [
     path("user/", UserAPI.as_view()),
     path("profile/", ProfileAPI.as_view()),
     path("profile/create", ProfileCreateAPI.as_view()),
-    path('profile/update/<int:user_id>', ProfileUpdateAPI.as_view()),
+    path('profile/update', ProfileUpdateAPI.as_view()),
 
 ]

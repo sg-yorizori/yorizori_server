@@ -3,9 +3,13 @@ from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
 from .models import Recipe, Steps, Unit, Ingredients
 from .serializers import RecipeSerializer, StepSerializer, UnitSerializer, IngredientsSerializer
+from django.contrib.auth.models import User
 
 from rest_framework import status, generics
 from django.db.models import Case, When, Q
+from config.settings import *
+from recipe.detect_ingrd.views_detect import *
+
 
 
 class RecipeAllViewAPI(APIView): #특정 유저가 작성한 레시피 전체
@@ -78,8 +82,6 @@ class RecipeListViewAPI(APIView):
                     in_recipes.append(unit.recipe_id)
                 #일치하는 재료 개수만큼 레시피 추가됨
 
-                #print("list ", len(in_recipes))
-                #print("set ", len(set(in_recipes)))
                 count = {}
                 for i in in_recipes:
                     try:
@@ -95,34 +97,50 @@ class RecipeListViewAPI(APIView):
                 for recipe in sorted_count:
                     search_recipe_id_List.append(recipe[0].id)
 
-                #print(len(search_recipe_id_List))
-                #print(len(ex_recipe_id_List))
-                #print(len(search_recipe_id_List))
                 output_id_List = [x for x in search_recipe_id_List if x not in ex_recipe_id_List]
-                #print(output_id_List)
 
-                """
-                ordering = 'FIELD(`id`, %s)' % ','.join(str(id) for id in output_id_List)
-                print(ordering)
-                recipe_List = Recipe.objects.filter(id__in=[output_id_List]).extra(
-                    select={'ordering': ordering}, order_by=('ordering',))
-                """
                 preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(output_id_List)])
                 recipe_List = Recipe.objects.filter(pk__in=output_id_List).order_by(preserved)
-                #recipe_List = (Recipe.objects.exclude(id__in=ex_recipe_id_List)).filter(id__in=search_recipe_id_List)
-
-
 
         serializers = RecipeSerializer(recipe_List, many=True)
         return Response(serializers.data)
 
 class RecipeCreateAPI(APIView):
     def post(self, request):
-        serializers = RecipeSerializer(data=request.data)
-        if serializers.is_valid():
-            serializers.save()
-            return Response(serializers.data, status=status.HTTP_201_CREATED)
-        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+        d = Recipe.objects.create(
+            title=request.data['title'],
+            writer=User.objects.get(id=request.data['writer'])
+        )
+
+        recipe_id = Recipe.objects.latest('id').id
+        if not os.path.exists(RECIPE_ROOT):
+            os.makedirs(RECIPE_ROOT)
+        if not os.path.exists(RECIPE_ROOT + "/" + str(recipe_id)):
+            os.makedirs(RECIPE_ROOT + "/" + str(recipe_id))
+
+        try:
+            base64Image = request.data['thumb']
+            base64Image = encodebase64(base64Image)
+
+            thumb_url = MEDIA_URL + 'recipe/'+str(recipe_id)+"/"+"thumbnail.jpg"
+            thumb_path = os.path.join(RECIPE_ROOT+"/"+str(recipe_id)+"/", "thumbnail.jpg")
+            request.data['thumb'] = FRONT_HOST + thumb_url
+            cv2.imwrite(thumb_path, base64Image)
+
+            recipe = Recipe.objects.latest('id')
+
+            serializers = RecipeSerializer(recipe, data=request.data)
+
+            if serializers.is_valid():
+               serializers.save()
+               return Response(serializers.data, status=status.HTTP_201_CREATED)
+            return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+        except:
+            serializers = RecipeSerializer(d, data=request.data)
+            if serializers.is_valid():
+                return Response(serializers.data, status=status.HTTP_201_CREATED)
+            return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
 
 class RecipeDetails(APIView):
     def get_object(self, id):
@@ -157,12 +175,24 @@ class StepsCreateAPI(APIView):
     def post(self, request):
         flag = 0
         for step in request.data:
-            serializers = StepSerializer(data=step)
+            try :
+                base64Image = step['img']
+                base64Image = encodebase64(base64Image)
+
+                step_path = os.path.join(RECIPE_ROOT, (str(step["recipe_id"])+"/"+str(step["num"])+".jpg"))
+                step_url = MEDIA_URL + 'recipe/' + (str(step["recipe_id"])+"/"+str(step["num"])+".jpg")
+                step['img'] = FRONT_HOST + step_url
+                cv2.imwrite(step_path, base64Image)
+                serializers = StepSerializer(data=step)
+
+            except:
+                serializers = StepSerializer(data=step)
 
             if serializers.is_valid():
                 serializers.save()
             else:
                 flag=1
+
         if flag==1 : Response(status = status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_201_CREATED)
 
