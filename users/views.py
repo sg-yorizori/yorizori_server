@@ -88,31 +88,57 @@ class ProfileCreateAPI(APIView):
         disliked_id_List=[]
         for ingrd in disliked_List:
             disliked_id_List.append(ingrd.id)
-
         request.data["disliked"] = disliked_id_List
 
-        base64Image = request.data['profile_img']
-        base64Image = encodebase64(base64Image)
+        if(len(request.data['profile_img'])!=0):
+            base64Image = request.data['profile_img']
+            base64Image = encodebase64(base64Image)
 
-        if not os.path.exists(PROFILE_ROOT):
-            os.makedirs(PROFILE_ROOT)
-        user_profile_path = os.path.join(PROFILE_ROOT, (str(request.data["user_id"])+".jpg"))
-        user_profile_url = MEDIA_URL + 'profile/'+(str(request.data["user_id"])+".jpg")
-        request.data['profile_img'] = FRONT_HOST+user_profile_url
-        cv2.imwrite(user_profile_path, base64Image)
+            if not os.path.exists(PROFILE_ROOT):
+                os.makedirs(PROFILE_ROOT)
+            user_profile_path = os.path.join(PROFILE_ROOT, (str(request.data["user_id"])+".jpg"))
+            user_profile_url = MEDIA_URL + 'profile/'+(str(request.data["user_id"])+".jpg")
+            request.data['profile_img'] = FRONT_HOST+user_profile_url
+            cv2.imwrite(user_profile_path, base64Image)
 
-        serializers = ProfileSerializer(data=request.data)
+            serializers = ProfileSerializer(data=request.data)
+
+            if serializers.is_valid():
+                serializers.save()
+                return Response(serializers.data, status=status.HTTP_201_CREATED)
+            return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileUpdateAPI(APIView):
+    def post(self, request):
+        user_id = request.data["user_id"]
+        profile = Profile.objects.get(user_id = user_id)
+
+        try:
+            disliked_List = Ingredients.objects.filter(name__in = request.data["disliked"])
+            disliked_id_List=[]
+            for ingrd in disliked_List:
+                disliked_id_List.append(ingrd.id)
+            request.data["disliked"] = disliked_id_List
+        except:
+            user_id = request.data["user_id"]
+
+        try:
+            base64Image = request.data['profile_img']
+            base64Image = encodebase64(base64Image)
+
+            user_profile_path = os.path.join(PROFILE_ROOT, (str(user_id)+".jpg"))
+            user_profile_url = MEDIA_URL + 'profile/'+(str(user_id)+".jpg")
+            request.data['profile_img'] = FRONT_HOST+user_profile_url
+            cv2.imwrite(user_profile_path, base64Image)
+
+            serializers = ProfileSerializer(profile, data=request.data)
+        except:
+            serializers = ProfileSerializer(profile, data=request.data)
 
         if serializers.is_valid():
             serializers.save()
-            return Response(serializers.data, status=status.HTTP_201_CREATED)
-        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
-
-class ProfileUpdateAPI(generics.UpdateAPIView):
-    lookup_field = 'user_id'
-    queryset = Profile.objects.all()
-    serializer_class = ProfileUpdateSerializer
-
+            return Response(serializers.data)
 
 '''
 class ProfileUpdateAPI(generics.UpdateAPIView):

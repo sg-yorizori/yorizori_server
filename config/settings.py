@@ -18,7 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 PROFILE_ROOT = os.path.join(MEDIA_ROOT, "profile")
-FRONT_HOST = '10.0.2.2'
+RECIPE_ROOT = os.path.join(MEDIA_ROOT, "recipe")
+
+FRONT_HOST = 'http://10.0.2.2:8000'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
