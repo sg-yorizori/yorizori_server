@@ -3,6 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, generics, status
 from knox.models import AuthToken
+
+from config.settings import *
+from recipe.detect_ingrd.views_detect import *
+from recipe.models import Ingredients
 from .serializers import CreateUserSerializer, UserSerializer, LoginUserSerializer, ProfileSerializer, ProfileUpdateSerializer
 from .models import Profile
 from django.utils.datastructures import MultiValueDictKeyError
@@ -78,9 +82,31 @@ class ProfileAPI(generics.GenericAPIView):
         return Response(profile_list.data, status=200)
 
 
-class ProfileCreateAPI(generics.CreateAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+class ProfileCreateAPI(APIView):
+    def post(self, request):
+        disliked_List = Ingredients.objects.filter(name__in = request.data["disliked"])
+        disliked_id_List=[]
+        for ingrd in disliked_List:
+            disliked_id_List.append(ingrd.id)
+
+        request.data["disliked"] = disliked_id_List
+
+        base64Image = request.data['profile_img']
+        base64Image = encodebase64(base64Image)
+
+        if not os.path.exists(PROFILE_ROOT):
+            os.makedirs(PROFILE_ROOT)
+        user_profile_path = os.path.join(PROFILE_ROOT, (str(request.data["user_id"])+".jpg"))
+        user_profile_url = MEDIA_URL + 'profile/'+(str(request.data["user_id"])+".jpg")
+        request.data['profile_img'] = FRONT_HOST+user_profile_url
+        cv2.imwrite(user_profile_path, base64Image)
+
+        serializers = ProfileSerializer(data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
 
 class ProfileUpdateAPI(generics.UpdateAPIView):
     lookup_field = 'user_id'
