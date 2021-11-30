@@ -1,5 +1,6 @@
 from django.urls import path, include
 from .views import *
+from .detect_ingrd.views_detect import *
 
 urlpatterns = [
     # path('', RecipeView.as_view()),
@@ -22,4 +23,5 @@ urlpatterns = [
     path('ingrd/<int:id>/', IngrdAPI.as_view()),
     path('ingrd/all/', IngrdAllViewAPI.as_view()),
 
+    path('detect/', DetectIngrdViewAPI.as_view())
 ]
