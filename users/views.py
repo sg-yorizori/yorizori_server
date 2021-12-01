@@ -90,7 +90,7 @@ class ProfileCreateAPI(APIView):
             disliked_id_List.append(ingrd.id)
         request.data["disliked"] = disliked_id_List
 
-        if(len(request.data['profile_img'])!=0):
+        try:
             base64Image = request.data['profile_img']
             base64Image = encodebase64(base64Image)
 
@@ -100,14 +100,14 @@ class ProfileCreateAPI(APIView):
             user_profile_url = MEDIA_URL + 'profile/'+(str(request.data["user_id"])+".jpg")
             request.data['profile_img'] = FRONT_HOST+user_profile_url
             cv2.imwrite(user_profile_path, base64Image)
-
+            serializers = ProfileSerializer(data=request.data)
+        except:
             serializers = ProfileSerializer(data=request.data)
 
-            if serializers.is_valid():
-                serializers.save()
-                return Response(serializers.data, status=status.HTTP_201_CREATED)
-            return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
-
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
 
 class ProfileUpdateAPI(APIView):
     def post(self, request):
@@ -127,6 +127,9 @@ class ProfileUpdateAPI(APIView):
             base64Image = request.data['profile_img']
             base64Image = encodebase64(base64Image)
 
+
+            if not os.path.exists(PROFILE_ROOT):
+                os.makedirs(PROFILE_ROOT)
             user_profile_path = os.path.join(PROFILE_ROOT, (str(user_id)+".jpg"))
             user_profile_url = MEDIA_URL + 'profile/'+(str(user_id)+".jpg")
             request.data['profile_img'] = FRONT_HOST+user_profile_url
