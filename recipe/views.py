@@ -1,6 +1,11 @@
+from itertools import chain
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
+
+from users.models import Profile
+from users.serializers import ProfileSerializer
 from .models import Recipe, Steps, Unit, Ingredients
 from .serializers import RecipeSerializer, StepSerializer, UnitSerializer, IngredientsSerializer
 from django.contrib.auth.models import User
@@ -169,6 +174,28 @@ class RecipeDetails(APIView):
         recipe.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
 
+
+class BookmarkAPI(APIView):
+    def post(self, request):
+        user = Profile.objects.get(user_id = request.data["user_id"])
+        recipe = Recipe.objects.get(id = request.data["recipe_id"])
+        user.bookmark.add(recipe)
+
+        return Response(ProfileSerializer(user).data)
+    def delete(self, request):
+        user = Profile.objects.get(user_id = request.data["user_id"])
+        recipe = Recipe.objects.get(id = request.data["recipe_id"])
+        user.bookmark.remove(recipe)
+
+        return Response(ProfileSerializer(user).data)
+
+class BookmarkTFAPI(APIView):
+    def post(self, request):
+        user = Profile.objects.get(user_id = request.data["user_id"])
+        recipe = Recipe.objects.get(id = request.data["recipe_id"])
+
+        if user.bookmark.filter(id=recipe.id).exists(): return Response(status = status.HTTP_200_OK)
+        else: return Response(status = status.HTTP_204_NO_CONTENT)
 
 
 class StepsCreateAPI(APIView):
