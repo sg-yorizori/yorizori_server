@@ -174,6 +174,11 @@ class RecipeDetails(APIView):
         recipe.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
 
+class SearchTitleAPI(APIView):
+    def post(self, request):
+        recipe_List = Recipe.objects.all().filter(title__contains=request.data["search"])
+        return Response(RecipeSerializer(recipe_List, many = True).data)
+
 
 class BookmarkAPI(APIView):
     def post(self, request):
