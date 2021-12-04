@@ -41,6 +41,19 @@ def ex_ingrds(v, disliked):
 
     return list(set(vegan + disliked))
 
+class RecipeRecentListViewAPI(APIView):
+    def post(self, request):
+        output_id_List = request.data["recent_view"]
+        output_List = []
+        for id in output_id_List:
+            instance = Recipe.objects.get(id=id)
+            #print(RecipeSerializer(instance).data)
+            output_List.append(RecipeSerializer(instance).data)
+
+        return Response(data=output_List, status=200)
+
+
+
 class RecipeListViewAPI(APIView):
     def get(self, request, id):
         recipe_List = Recipe.objects.filter(writer = id)
