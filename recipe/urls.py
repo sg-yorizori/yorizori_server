@@ -11,6 +11,7 @@ urlpatterns = [
     path('list/<int:id>/', RecipeListViewAPI.as_view()),
     path('list/', RecipeListViewAPI.as_view()),
     path('list/title/', SearchTitleAPI.as_view()),
+    path('list/recent/', RecipeRecentListViewAPI.as_view()),
 
     path('bookmark/', BookmarkAPI.as_view()),
     path('bookmark/TF/', BookmarkTFAPI.as_view()),
