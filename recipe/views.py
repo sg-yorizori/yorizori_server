@@ -211,6 +211,15 @@ class BookmarkTFAPI(APIView):
         if user.bookmark.filter(id=recipe.id).exists(): return Response(status = status.HTTP_200_OK)
         else: return Response(status = status.HTTP_204_NO_CONTENT)
 
+class ViewsAPI(APIView):
+    def get(self, requests, id):
+        try:
+            recipe = Recipe.objects.get(id=id)
+            recipe.views += 1
+            recipe.save()
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=200)
 
 class StepsCreateAPI(APIView):
     def post(self, request):
