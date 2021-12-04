@@ -41,18 +41,6 @@ def ex_ingrds(v, disliked):
 
     return list(set(vegan + disliked))
 
-class RecipeRecentListViewAPI(APIView):
-    def post(self, request):
-        output_id_List = request.data["recent_view"]
-        output_List = []
-        for id in output_id_List:
-            instance = Recipe.objects.get(id=id)
-            #print(RecipeSerializer(instance).data)
-            output_List.append(RecipeSerializer(instance).data)
-
-        return Response(data=output_List, status=200)
-
-
 
 class RecipeListViewAPI(APIView):
     def get(self, request, id):
@@ -62,7 +50,16 @@ class RecipeListViewAPI(APIView):
 
     def post(self, request):
         flag = request.data["flag"]
-        if (flag==1):
+
+        if (flag==0):
+            output_id_List = request.data["recent_view"]
+            output_List = []
+            for id in output_id_List:
+                instance = Recipe.objects.get(id=id)
+                output_List.append(RecipeSerializer(instance).data)
+
+            return Response(data=output_List, status=200)
+        elif (flag==1):
             recipe_List = Recipe.objects.filter(id__in = request.data["recipe_list"])
 
         elif (flag >= 2):
@@ -90,7 +87,6 @@ class RecipeListViewAPI(APIView):
                 ingrd_List=[]
                 for instance in ingrd_instance_List:
                     ingrd_List.append(instance.id)
-                    #print(instance.name, instance.id)
 
                 #검색할 재료를 유닛에서 검색. (12)당근 2개, (13)당근 1개, (12)양파1개
                 in_units = Unit.objects.filter(ingrd_id__in=ingrd_List)
