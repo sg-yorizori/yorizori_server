@@ -52,7 +52,7 @@ class RecipeListViewAPI(APIView):
         flag = request.data["flag"]
 
         if (flag==0):
-            output_id_List = request.data["recent_view"]
+            output_id_List = request.data["recipe_list"]
             output_List = []
             for id in output_id_List:
                 instance = Recipe.objects.get(id=id)
