@@ -21,6 +21,9 @@ PROFILE_ROOT = os.path.join(MEDIA_ROOT, "profile")
 RECIPE_ROOT = os.path.join(MEDIA_ROOT, "recipe")
 
 FRONT_HOST = 'http://10.0.2.2:8000'
+#FRONT_HOST = "http://192.168.43.35:8000"
+#FRONT_HOST = 'http://192.168.0.142:8000'
+#FRONT_HOST = 'http://192.168.42.56:8000'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -31,7 +34,7 @@ SECRET_KEY = '8wygr*b4xtq1w3@#hd5n%@lmdav+)^*1qry5g^_jpz3sl1gb27'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', 'localhost', '192.168.42.56', '192.168.0.142', '192.168.43.35','175.114.87.20']
 
 
 # Application definition
