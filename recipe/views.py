@@ -238,6 +238,8 @@ class StepsCreateAPI(APIView):
             except:
                 serializers = StepSerializer(data=step)
 
+            print(step)
+
             if serializers.is_valid():
                 serializers.save()
             else:
